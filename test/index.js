@@ -142,10 +142,20 @@ suite( "Tools.Promise", function() {
 				Should( multiMapped ).be.exactly( 1 );
 			} );
 
+		/**
+		 * Returns promise resolved after 20 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
 		function fastMapper() {
 			return new Promise( resolve => setTimeout( resolve, 20 ) );
 		}
 
+		/**
+		 * Returns promise resolved after 40 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
 		function slowMapper() {
 			return new Promise( resolve => setTimeout( resolve, 40 ) );
 		}
