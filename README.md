@@ -98,6 +98,25 @@ Provided callback may return promise to delay processing of further data read fr
 
 On stream emitting `error` event the promise is rejected. Same applies to callback throwing exception or returning eventually rejected promise. **In either case the stream gets paused.**
 
+```javascript
+    const PromiseTools = require( "promise-essentials" );
+    
+    function _someHandler( req, res, next ) {
+        PromiseTool.process( req, chunk => {
+            this.collected = ( this.collected || [] ).concat( [ chunk ] );
+        } )
+            .then( ( { collected } ) => {
+                const reqBody = Buffer.concat( collected ).toString( "utf8" );
+
+                res
+                    .status( 200 )
+                    .end( reqBody.length > 1024 ? "quite a lot request data" : "send more!" );
+            }, error => res.status( 400 ).end() );
+    }
+```
+
+As of 0.0.3 there is a default processor collecting all read objects/chunks in property `collected` as illustrated in example above so this example may be reduced to read `PromiseTool.process( req ).then( ... )`, only.
+
 # License
 
 [MIT](LICENSE)
