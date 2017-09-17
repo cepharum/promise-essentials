@@ -90,6 +90,14 @@ This method is a promisified version of `setTimeout()` resolving returned promis
 
 This example will output `Hello World!` on stdout after a rough delay of 5 seconds.
 
+## PromiseTools.process( Readable, callback ) : Promise\<object>
+
+This method takes a readable stream for reading data from stream and passing it to provided callback for processing. On meeting end of stream the promise is resolved with single object passed as `this` to all invocations of given callback. Callback is considered to provide any arbitrary result in custom properties of that object.
+
+Provided callback may return promise to delay processing of further data read from stream. In that case stream is paused until promise is resolved.
+
+On stream emitting `error` event the promise is rejected. Same applies to callback throwing exception or returning eventually rejected promise. **In either case the stream gets paused.**
+
 # License
 
 [MIT](LICENSE)
