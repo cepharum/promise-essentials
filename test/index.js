@@ -398,7 +398,7 @@ suite( "Tools.Promise", function() {
 	} );
 
 	test( "resolves on processing item read from single-item object stream", function() {
-		const stream = _getStreamFromArray( { items: [ { foo: 1 } ] } );
+		const stream = _getStreamFromArray( { items: [{ foo: 1 }] } );
 
 		return PromiseTool.process( stream, ( item, index, streamRef ) => {
 			item.should.be.Object()
@@ -435,17 +435,20 @@ suite( "Tools.Promise", function() {
 	} );
 
 	test( "processes non-object streams", function() {
-		const stream = _getStreamFromArray( { objectMode: false, items: [
-			Buffer.from( "Hello", "utf8" ),
-			Buffer.from( " ", "utf8" ),
-			Buffer.from( "World", "utf8" ),
-			Buffer.from( "!", "utf8" )
-		] } );
+		const stream = _getStreamFromArray( {
+			objectMode: false,
+			items: [
+				Buffer.from( "Hello", "utf8" ),
+				Buffer.from( " ", "utf8" ),
+				Buffer.from( "World", "utf8" ),
+				Buffer.from( "!", "utf8" )
+			]
+		} );
 
 		return PromiseTool.process( stream, function( chunk, index ) {
 			return new Promise( resolve => {
 				setTimeout( () => {
-					this.chunks = ( this.chunks || [] ).concat( [ chunk ] );
+					this.chunks = ( this.chunks || [] ).concat( [chunk] );
 
 					resolve();
 				}, ( 5 - index ) * 10 );
@@ -464,19 +467,23 @@ suite( "Tools.Promise", function() {
 	} );
 
 	test( "stops processing on stream error", function() {
-		const stream = _getStreamFromArray( { objectMode: false, items: [
-			Buffer.from( "Hello", "utf8" ),
-			Buffer.from( " ", "utf8" ),
-			Buffer.from( "World", "utf8" ),
-			Buffer.from( "!", "utf8" )
-		], failOnReadingIndex: 2 } );
+		const stream = _getStreamFromArray( {
+			objectMode: false,
+			items: [
+				Buffer.from( "Hello", "utf8" ),
+				Buffer.from( " ", "utf8" ),
+				Buffer.from( "World", "utf8" ),
+				Buffer.from( "!", "utf8" )
+			],
+			failOnReadingIndex: 2
+		} );
 
 		let processed = null;
 
 		return PromiseTool.process( stream, function( chunk, index ) {
 			return new Promise( resolve => {
 				setTimeout( () => {
-					this.chunks = processed = ( this.chunks || [] ).concat( [ chunk ] );
+					this.chunks = processed = ( this.chunks || [] ).concat( [chunk] );
 
 					resolve();
 				}, ( 5 - index ) * 10 );
