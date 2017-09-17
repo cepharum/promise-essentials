@@ -466,6 +466,30 @@ suite( "Tools.Promise", function() {
 			} );
 	} );
 
+	test( "collects chunks/objects on processing w/o custom processor", function() {
+		const stream = _getStreamFromArray( {
+			objectMode: false,
+			items: [
+				Buffer.from( "Hello", "utf8" ),
+				Buffer.from( " ", "utf8" ),
+				Buffer.from( "World", "utf8" ),
+				Buffer.from( "!", "utf8" )
+			]
+		} );
+
+		return PromiseTool.process( stream )
+			.then( result => {
+				result.should.be.Object()
+					.and.have.size( 1 )
+					.and.have.property( "collected" )
+					.and.be.Array()
+					.and.have.size( 4 );
+
+				Buffer.concat( result.collected ).toString( "utf8" ).should.be.String()
+					.and.equal( "Hello World!" );
+			} );
+	} );
+
 	test( "stops processing on stream error", function() {
 		const stream = _getStreamFromArray( {
 			objectMode: false,
