@@ -1,5 +1,7 @@
 "use strict";
 
+const Stream = require( "stream" );
+
 const Should = require( "should" );
 
 const PromiseTool = require( "../" );
@@ -388,4 +390,138 @@ suite( "Tools.Promise", function() {
 				Should( stop - start ).be.approximately( 100, 30 );
 			} );
 	} );
+
+	test( "resolves on processing no items read from empty stream", function() {
+		return PromiseTool.process( _getStreamFromArray(), () => {
+			throw new Error( "process() invoked callback on empty string" );
+		} );
+	} );
+
+	test( "resolves on processing item read from single-item object stream", function() {
+		const stream = _getStreamFromArray( { items: [ { foo: 1 } ] } );
+
+		return PromiseTool.process( stream, ( item, index, streamRef ) => {
+			item.should.be.Object()
+				.and.have.size( 1 )
+				.and.have.property( "foo" )
+				.and.equal( 1 );
+			index.should.be.Number()
+				.and.equal( 0 );
+			streamRef.should.equal( stream );
+		} );
+	} );
+
+	test( "pauses stream while processing asynchronously", function() {
+		let factor = 1;
+
+		const stream = _getStreamFromArray( { items: [ 1, 2, 6, 8, 5 ] } );
+
+		return PromiseTool.process( stream, function( digit, index ) {
+			return new Promise( resolve => {
+				setTimeout( () => {
+					this.number = ( this.number || 0 ) + digit * factor;
+					factor *= 10;
+
+					resolve();
+				}, ( 6 - index ) * 10 );
+			} );
+		} )
+			.then( result => {
+				result.should.be.Object()
+					.and.have.size( 1 )
+					.and.have.property( "number" )
+					.and.equal( 58621 );
+			} );
+	} );
+
+	test( "processes non-object streams", function() {
+		const stream = _getStreamFromArray( { objectMode: false, items: [
+			Buffer.from( "Hello", "utf8" ),
+			Buffer.from( " ", "utf8" ),
+			Buffer.from( "World", "utf8" ),
+			Buffer.from( "!", "utf8" )
+		] } );
+
+		return PromiseTool.process( stream, function( chunk, index ) {
+			return new Promise( resolve => {
+				setTimeout( () => {
+					this.chunks = ( this.chunks || [] ).concat( [ chunk ] );
+
+					resolve();
+				}, ( 5 - index ) * 10 );
+			} );
+		} )
+			.then( result => {
+				result.should.be.Object()
+					.and.have.size( 1 )
+					.and.have.property( "chunks" )
+					.and.be.Array()
+					.and.have.size( 4 );
+
+				Buffer.concat( result.chunks ).toString( "utf8" ).should.be.String()
+					.and.equal( "Hello World!" );
+			} );
+	} );
+
+	test( "stops processing on stream error", function() {
+		const stream = _getStreamFromArray( { objectMode: false, items: [
+			Buffer.from( "Hello", "utf8" ),
+			Buffer.from( " ", "utf8" ),
+			Buffer.from( "World", "utf8" ),
+			Buffer.from( "!", "utf8" )
+		], failOnReadingIndex: 2 } );
+
+		let processed = null;
+
+		return PromiseTool.process( stream, function( chunk, index ) {
+			return new Promise( resolve => {
+				setTimeout( () => {
+					this.chunks = processed = ( this.chunks || [] ).concat( [ chunk ] );
+
+					resolve();
+				}, ( 5 - index ) * 10 );
+			} );
+		} )
+			.then( () => {
+				throw new Error( "processing stream should not succeed" );
+			}, error => {
+				error.should.be.Object().and.have.property( "code" ).and.equal( "EDESIRED" );
+
+				Buffer.concat( processed ).toString( "utf8" ).should.be.String()
+					.and.equal( "Hello " );
+			} );
+	} );
+
+	/**
+	 * Returns readable stream for reading from optionally provided array of
+	 * items.
+	 *
+	 * @param {boolean} objectMode true to get object stream
+	 * @param {int} highWaterMark number of objects of bytes (in non-object stream) to prefetch
+	 * @param {Array} items set of objects or buffers to feed stream
+	 * @param {int} failOnReadingIndex index of item in `items` that shouldn't be readable, for simulating stream error
+	 * @returns {Readable}
+	 * @private
+	 */
+	function _getStreamFromArray( { objectMode = true, highWaterMark = 1, items = [], failOnReadingIndex = null } = {} ) {
+		let readIndex = 0;
+
+		return new Stream.Readable( {
+			objectMode,
+			highWaterMark,
+
+			read: function() {
+				if ( readIndex === failOnReadingIndex ) {
+					process.nextTick( () => this.emit( "error", Object.assign( new Error( "failed on reading" ), { code: "EDESIRED" } ) ) );
+					return;
+				}
+
+				if ( readIndex === items.length ) {
+					this.push( null );
+				} else {
+					this.push( items[readIndex++] );
+				}
+			}
+		} );
+	}
 } );
