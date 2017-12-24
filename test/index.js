@@ -547,6 +547,28 @@ suite( "Tools.Promise", function() {
 		return promise.should.be.Promise().which.is.rejected();
 	} );
 
+	test( "supports context object for binding promisified function to", function() {
+		/**
+		 * Implements some test function accepting NodeJS-style callback.
+		 *
+		 * @param {function(Error,*)} cb NodeJS-style callback
+		 */
+		function theFunction( cb ) {
+			setTimeout( cb, 100, null, ( this || {} ).theValue || "not found" );
+		}
+
+		const context = { theValue: "found" };
+
+		const promisifiedUnboundFunction = PromiseTool.promisify( theFunction );
+		const promisifiedBoundFunction = PromiseTool.promisify( theFunction, context );
+
+		const unboundPromise = promisifiedUnboundFunction();
+		const boundPromise = promisifiedBoundFunction();
+
+		return Promise.all( [ unboundPromise, boundPromise ] )
+			.should.be.fulfilledWith( [ "not found", "found" ] );
+	} );
+
 	/**
 	 * Returns readable stream for reading from optionally provided array of
 	 * items.
