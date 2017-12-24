@@ -542,7 +542,7 @@ suite( "Tools.Promise", function() {
 
 		const promisifiedStat = PromiseTool.promisify( stat );
 
-		const promise = promisifiedStat( __dirname + "lots.of.nonsense.name.garbage" );
+		const promise = promisifiedStat( require( "path" ).join( __dirname, "lots.of.nonsense.name.garbage" ) );
 
 		return promise.should.be.Promise().which.is.rejected();
 	} );
