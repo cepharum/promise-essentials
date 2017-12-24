@@ -1,6 +1,6 @@
 {
   "name": "promise-essentials",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "provides essential helpers for use with natively supported promises",
   "main": "index.js",
   "scripts": {
