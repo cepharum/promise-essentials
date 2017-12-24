@@ -4,7 +4,7 @@ const Stream = require( "stream" );
 
 const Should = require( "should" );
 
-const PromiseTool = require( "../" );
+const PromiseTool = require( ".." );
 
 // ----------------------------------------------------------------------------
 
@@ -521,6 +521,30 @@ suite( "Tools.Promise", function() {
 				Buffer.concat( processed ).toString( "utf8" ).should.be.String()
 					.and.equal( "Hello " );
 			} );
+	} );
+
+	test( "promisifies function of NodeJS library", function() {
+		const { stat } = require( "fs" );
+
+		stat.should.be.Function();
+
+		const promisifiedStat = PromiseTool.promisify( stat );
+
+		promisifiedStat.should.be.Function();
+
+		const promise = promisifiedStat( __dirname );
+
+		return promise.should.be.Promise().which.is.fulfilled();
+	} );
+
+	test( "returns rejected promise on calling promisified function of NodeJS library expected to fail", function() {
+		const { stat } = require( "fs" );
+
+		const promisifiedStat = PromiseTool.promisify( stat );
+
+		const promise = promisifiedStat( __dirname + "lots.of.nonsense.name.garbage" );
+
+		return promise.should.be.Promise().which.is.rejected();
 	} );
 
 	/**

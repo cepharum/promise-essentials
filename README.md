@@ -117,6 +117,17 @@ On stream emitting `error` event the promise is rejected. Same applies to callba
 
 As of 0.0.3 there is a default processor collecting all read objects/chunks in property `collected` as illustrated in example above so this example may be reduced to read `PromiseTool.process( req ).then( ... )`, only.
 
+## PromiseTools.promisify( fn ) : fn:Promise
+
+_Promisification_ is the process of converting the signature of some existing asynchronous function so it is returning a promise instead of using some different way of handling asynchronous processing. 
+
+This particular method is converting functions accepting NodeJS-style callback as last argument into function returning promise instead. Returned function is wrapping the provided one. The latter one is invoked internally with custom NodeJS-style callback appended as argument used to resolve or reject returned promise.
+
+    const { stat } = require( "fs" );
+    const promisifiedStat = PromiseTools.promisify( stat );
+    
+    promisifiedStat( __dirname ).then( info => console.log( info.isDirectory() ) );
+
 # License
 
 [MIT](LICENSE)
