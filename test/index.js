@@ -9,21 +9,35 @@ const PromiseTool = require( ".." );
 // ----------------------------------------------------------------------------
 
 suite( "Tools.Promise", function() {
-	let input;
+	let sortedList;
+	let object;
+	let map;
 
 	setup( function() {
-		input = [
+		sortedList = [
 			"*", "-",
 			new Promise( function( resolve ) { setTimeout( resolve, 20, "+" ); } ),
 			"#", "=", "%", ":"
 		];
+
+		object = {
+			key1: "one",
+			key2: new Promise( resolve => setTimeout( resolve, 10, "two" ) ),
+			key3: "three",
+		};
+
+		map = new Map( [
+			[ "first", "one" ],
+			[ "second", new Promise( resolve => setTimeout( resolve, 10, "two" ) ) ],
+			[ "third", "three" ],
+		] );
 	} );
 
-	test( "supports sequential, probably delayed iteration using each()", function() {
+	test( "supports sequential, probably delayed iteration over array using each()", function() {
 		let output = [];
 
 		return PromiseTool
-			.each( input, function( value, index, items ) {
+			.each( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -37,20 +51,76 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => output.push( value.repeat( index ) ) );
 			} )
-			.then( function( result ) {
+			.then( result => {
 				// each() is passing initially provided array
 				result.should.be.Array();
 				result.should.have.length( 7 );
-				result.should.be.eql( input );
+				result.should.be.eql( sortedList );
 
 				// each() is awaiting delayed results of callback
 				output.join( "," ).should.be.eql( ",-,++,###,====,%%%%%,::::::" );
 			} );
 	} );
 
+	test( "supports sequential, probably delayed iteration over object using each()", function() {
+		let output = [];
+
+		return PromiseTool
+			.each( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return output.push( value );
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => output.push( value ) );
+			} )
+			.then( result => {
+				// each() is passing initially provided array
+				result.should.be.Object().which.has.size( 3 ).and.is.equal( object );
+
+				// each() is awaiting delayed results of callback
+				output.should
+					.containEql( "one" ).and
+					.containEql( "two" ).and
+					.containEql( "three" ).and
+					.have.length( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed iteration over Map using each()", function() {
+		let output = [];
+
+		return PromiseTool
+			.each( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				if ( index !== "first" ) {
+					// return instantly
+					return output.push( value );
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => output.push( value ) );
+			} )
+			.then( result => {
+				// each() is passing initially provided array
+				result.should.be.instanceOf( Map ).and.have.size( 3 ).and.is.equal( map );
+
+				// each() is awaiting delayed results of callback
+				output.join( "," ).should.equal( "one,two,three" );
+			} );
+	} );
+
 	test( "supports sequential, probably delayed filtering of array using filter()", function() {
 		return PromiseTool
-			.filter( input, function( value, index, items ) {
+			.filter( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -64,11 +134,11 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => index % 3 !== 0 );
 			} )
-			.then( function( result ) {
+			.then( result => {
 				// filter() is providing reduced set of input values
 				result.should.be.Array();
 				result.should.have.length( 4 );
-				result.should.not.be.eql( input );
+				result.should.not.be.eql( sortedList );
 
 				// filter() is keeping original order of items
 				result[0].should.be.eql( "-" );
@@ -78,9 +148,61 @@ suite( "Tools.Promise", function() {
 			} );
 	} );
 
+	test( "supports sequential, probably delayed filtering of object using filter()", function() {
+		return PromiseTool
+			.filter( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return true;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => false );
+			} )
+			.then( result => {
+				// filter() is providing reduced set of input values
+				result.should.be.Array().which
+					.not.containEql( "two" ).and
+					.containEql( "three" ).and
+					.has.length( 2 );
+
+				result.some( v => v instanceof Promise ).should.be.true();
+			} );
+	} );
+
+	test( "supports sequential, probably delayed filtering of Map using filter()", function() {
+		return PromiseTool
+			.filter( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				if ( index !== "first" ) {
+					// return instantly
+					return true;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => false );
+			} )
+			.then( result => {
+				// filter() is providing reduced set of input values
+				result.should.be.Array().which
+					.not.containEql( "two" ).and
+					.containEql( "three" ).and
+					.has.length( 2 );
+
+				result.some( v => v instanceof Promise ).should.be.true();
+			} );
+	} );
+
 	test( "supports sequential, probably delayed mapping of array using map()", function() {
 		return PromiseTool
-			.map( input, function( value, index, items ) {
+			.map( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -98,16 +220,62 @@ suite( "Tools.Promise", function() {
 				// map() is providing set of values different from input though matching its size
 				result.should.be.Array();
 				result.should.have.length( 7 );
-				result.should.not.be.eql( input );
+				result.should.not.be.eql( sortedList );
 
 				// map() is keeping original order of items
 				result.should.be.eql( [ "", "-", "++", "###", "====", "%%%%%", "::::::" ] );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed mapping of object using map()", function() {
+		return PromiseTool
+			.map( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value );
+			} )
+			.then( result => {
+				// map() is providing set of values different from input though matching its size
+				result.should.be.Array().which
+					.containEql( "one" ).and
+					.containEql( "two" ).and
+					.containEql( "three" ).and
+					.has.length( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed mapping of Map using map()", function() {
+		return PromiseTool
+			.map( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value );
+			} )
+			.then( result => {
+				// map() is providing set of values different from input though matching its size
+				result.join( "," ).should.equal( "one,two,three" );
 			} );
 	} );
 
 	test( "supports sequential, probably delayed mapping of array using multiMap()", function() {
 		return PromiseTool
-			.multiMap( input, function( value, index, items ) {
+			.multiMap( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -125,19 +293,65 @@ suite( "Tools.Promise", function() {
 				// map() is providing set of values different from input though matching its size
 				result.should.be.Array();
 				result.should.have.length( 7 );
-				result.should.not.be.eql( input );
+				result.should.not.be.eql( sortedList );
 
 				// map() is keeping original order of items
 				result.should.be.eql( [ "", "-", "++", "###", "====", "%%%%%", "::::::" ] );
 			} );
 	} );
 
-	test( "maps faster on using multiMap() than on using map()", function() {
+	test( "supports sequential, probably delayed mapping of object using multiMap()", function() {
+		return PromiseTool
+			.multiMap( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value );
+			} )
+			.then( result => {
+				// map() is providing set of values different from input though matching its size
+				result.should.be.Array().which
+					.containEql( "one" ).and
+					.containEql( "two" ).and
+					.containEql( "three" ).and
+					.has.length( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed mapping of Map using multiMap()", function() {
+		return PromiseTool
+			.multiMap( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value;
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value );
+			} )
+			.then( result => {
+				// map() is providing set of values different from input though matching its size
+				result.join( "," ).should.equal( "one,two,three" );
+			} );
+	} );
+
+	test( "maps array faster on using multiMap() than on using map()", function() {
 		let rank = 1;
 
 		return Promise.all( [
-			PromiseTool.map( input, fastMapper ).then( () => rank++ ),
-			PromiseTool.multiMap( input, slowMapper ).then( () => rank++ )
+			PromiseTool.map( sortedList, fastMapper ).then( () => rank++ ),
+			PromiseTool.multiMap( sortedList, slowMapper ).then( () => rank++ )
 		] )
 			.then( function( [ mapped, multiMapped ] ) {
 				Should( mapped ).be.exactly( 2 );
@@ -163,11 +377,73 @@ suite( "Tools.Promise", function() {
 		}
 	} );
 
-	test( "supports sequential, probably delayed search for value", function() {
+	test( "maps object faster on using multiMap() than on using map()", function() {
+		let rank = 1;
+
+		return Promise.all( [
+			PromiseTool.map( object, fastMapper ).then( () => rank++ ),
+			PromiseTool.multiMap( object, slowMapper ).then( () => rank++ )
+		] )
+			.then( ( [ mapped, multiMapped ] ) => {
+				Should( mapped ).be.exactly( 2 );
+				Should( multiMapped ).be.exactly( 1 );
+			} );
+
+		/**
+		 * Returns promise resolved after 20 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
+		function fastMapper() {
+			return new Promise( resolve => setTimeout( resolve, 20 ) );
+		}
+
+		/**
+		 * Returns promise resolved after 40 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
+		function slowMapper() {
+			return new Promise( resolve => setTimeout( resolve, 40 ) );
+		}
+	} );
+
+	test( "maps Map faster on using multiMap() than on using map()", function() {
+		let rank = 1;
+
+		return Promise.all( [
+			PromiseTool.map( map, fastMapper ).then( () => rank++ ),
+			PromiseTool.multiMap( map, slowMapper ).then( () => rank++ )
+		] )
+			.then( ( [ mapped, multiMapped ] ) => {
+				Should( mapped ).be.exactly( 2 );
+				Should( multiMapped ).be.exactly( 1 );
+			} );
+
+		/**
+		 * Returns promise resolved after 20 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
+		function fastMapper() {
+			return new Promise( resolve => setTimeout( resolve, 20 ) );
+		}
+
+		/**
+		 * Returns promise resolved after 40 milliseconds.
+		 *
+		 * @returns {Promise}
+		 */
+		function slowMapper() {
+			return new Promise( resolve => setTimeout( resolve, 40 ) );
+		}
+	} );
+
+	test( "supports sequential, probably delayed search for value in array", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.find( input, function( value, index, items ) {
+			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -183,18 +459,65 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "%" );
 			} )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				result.should.be.String().and.be.equal( "%" );
 				Should( sum ).be.equal( 15 );
 			} );
 	} );
 
-	test( "supports sequential, probably delayed search for value in reverse order", function() {
+	test( "supports sequential, probably delayed search for value in object", function() {
+		return PromiseTool
+			.find( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "three";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "three" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				result.should.be.String().and.be.equal( "three" );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search for value in Map", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.find( input, function( value, index, items ) {
+			.find( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "three";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "three" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				result.should.be.String().and.be.equal( "three" );
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search in reverse order for value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -210,18 +533,65 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "%" );
 			}, true )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				result.should.be.String().and.be.equal( "%" );
 				Should( sum ).be.equal( 11 );
 			} );
 	} );
 
-	test( "provides null on failed sequential, probably delayed search for value", function() {
+	test( "supports sequential, probably delayed search in reverse order for value in object", function() {
+		return PromiseTool
+			.find( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "one";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "one" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				result.should.be.String().and.be.equal( "one" );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search in reverse order for value in Map", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.find( input, function( value, index, items ) {
+			.find( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "one";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "one" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				result.should.be.String().and.be.equal( "one" );
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides null on failed sequential, probably delayed search for value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -237,18 +607,70 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "something missing" );
 			} )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				Should( result ).be.null();
 				Should( sum ).be.equal( 21 );
 			} );
 	} );
 
-	test( "provides null on failed sequential, probably delayed search for value in reverse order", function() {
+	test( "provides null on failed sequential, probably delayed search for value in object", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.find( input, function( value, index, items ) {
+			.find( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				sum++;
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.null();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides null on failed sequential, probably delayed search for value in Map", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.find( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.null();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides null on failed sequential, probably delayed search in reverse order for value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -264,18 +686,70 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "something missing" );
 			}, true )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				Should( result ).be.null();
 				Should( sum ).be.equal( 21 );
 			} );
 	} );
 
-	test( "supports sequential, probably delayed search for index of a value", function() {
+	test( "provides null on failed sequential, probably delayed search in reverse order for value in object", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.indexOf( input, function( value, index, items ) {
+			.find( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				sum++;
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.null();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides null on failed sequential, probably delayed search in reverse order for value in Map", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.find( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.null();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search for index of a value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -291,18 +765,65 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "%" );
 			} )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				result.should.be.Number().and.be.equal( 5 );
 				Should( sum ).be.equal( 15 );
 			} );
 	} );
 
-	test( "supports sequential, probably delayed search for index of a value in reverse order", function() {
+	test( "supports sequential, probably delayed search for name of an object's property", function() {
+		return PromiseTool
+			.indexOf( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "three";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "three" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				result.should.equal( "key3" );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search for key of a Map's element", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.indexOf( input, function( value, index, items ) {
+			.indexOf( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "three";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "three" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				result.should.equal( "third" );
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search in reverse order for index of a value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -318,18 +839,65 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "%" );
 			}, true )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
 				result.should.be.Number().and.be.equal( 5 );
 				Should( sum ).be.equal( 11 );
 			} );
 	} );
 
-	test( "provides -1 on failed sequential, probably delayed search for index of a value", function() {
+	test( "supports sequential, probably delayed search in reverse order for name of an object's property", function() {
+		return PromiseTool
+			.indexOf( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "one";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "one" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				result.should.equal( "key1" );
+			} );
+	} );
+
+	test( "supports sequential, probably delayed search in reverse order for key of a Map's element", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.indexOf( input, function( value, index, items ) {
+			.indexOf( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "one";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "one" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				result.should.equal( "first" );
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides -1 on failed sequential, probably delayed search for index of a value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
 				items.should.have.length( 7 );
@@ -345,6 +913,85 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "something missing" );
 			} )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.Number().and.be.equal( -1 );
+				Should( sum ).be.equal( 21 );
+			} );
+	} );
+
+	test( "provides undefined on failed sequential, probably delayed search for name of an object's property", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
+
+				sum++;
+
+				if ( index !== "key1" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.undefined();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides undefined on failed sequential, probably delayed search for key of a Map's element", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			} )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.undefined();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides -1 on failed sequential, probably delayed search in reverse order for index of a value in array", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( sortedList, function( value, index, items ) {
+				Should( index ).be.within( 0, 6 );
+				items.should.be.Array();
+				items.should.have.length( 7 );
+
+				sum += index;
+
+				if ( index % 2 === 0 ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			}, true )
 			.then( function( result ) {
 				// find() is providing found value
 				Should( result ).be.Number().and.be.equal( -1 );
@@ -352,18 +999,17 @@ suite( "Tools.Promise", function() {
 			} );
 	} );
 
-	test( "provides null on failed sequential, probably delayed search for index of a value in reverse order", function() {
+	test( "provides undefined on failed sequential, probably delayed search in reverse order for name of an object's property", function() {
 		let sum = 0;
 
 		return PromiseTool
-			.indexOf( input, function( value, index, items ) {
-				Should( index ).be.within( 0, 6 );
-				items.should.be.Array();
-				items.should.have.length( 7 );
+			.indexOf( object, ( value, index, items ) => {
+				index.should.be.String().and.match( /^key[1-3]$/ );
+				items.should.be.Object().which.has.size( 3 );
 
-				sum += index;
+				sum++;
 
-				if ( index % 2 === 0 ) {
+				if ( index !== "key1" ) {
 					// return instantly
 					return value === "something missing";
 				}
@@ -372,10 +1018,36 @@ suite( "Tools.Promise", function() {
 				return new Promise( resolve => setTimeout( resolve, 20 ) )
 					.then( () => value === "something missing" );
 			}, true )
-			.then( function( result ) {
+			.then( result => {
 				// find() is providing found value
-				Should( result ).be.Number().and.be.equal( -1 );
-				Should( sum ).be.equal( 21 );
+				Should( result ).be.undefined();
+				Should( sum ).be.equal( 3 );
+			} );
+	} );
+
+	test( "provides undefined on failed sequential, probably delayed search in reverse order for key of a Map's element", function() {
+		let sum = 0;
+
+		return PromiseTool
+			.indexOf( map, ( value, index, items ) => {
+				index.should.be.String().and.match( /^(first|second|third)$/ );
+				items.should.be.instanceOf( Map ).and.have.size( 3 );
+
+				sum++;
+
+				if ( index !== "first" ) {
+					// return instantly
+					return value === "something missing";
+				}
+
+				// return after some delay
+				return new Promise( resolve => setTimeout( resolve, 20 ) )
+					.then( () => value === "something missing" );
+			}, true )
+			.then( result => {
+				// find() is providing found value
+				Should( result ).be.undefined();
+				Should( sum ).be.equal( 3 );
 			} );
 	} );
 
