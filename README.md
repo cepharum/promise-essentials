@@ -1,4 +1,4 @@
-# promise-essentials
+# promise-essentials [![Build Status](https://travis-ci.org/cepharum/promise-essentials.svg?branch=master)](https://travis-ci.org/cepharum/promise-essentials)
 
 essential helpers for use with natively supported promises
 
