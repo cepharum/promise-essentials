@@ -76,7 +76,7 @@ Works similar to `PromiseTools.each()` but promises first item of array provided
 
 This method is a counterpart to `Array.find()` with support for promises.
 
-## PromiseTools.find( Array\<T>, callback ) : Promise\<int>
+## PromiseTools.indexOf( Array\<T>, callback ) : Promise\<int>
 
 Works similar to `PromiseTools.each()` but promises index of first item of array provided callback function has returned truthy value for. If callback did not return truthy result on any item the returned promise is resolved with `-1`.
 
