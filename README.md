@@ -98,6 +98,7 @@ This method is a counterpart to `Array.filter()` with support for promises.
 
 The option `{ asArray: false }` may be provided to get a `Map` on providing a `Map` and an object when providing an object. Otherwise the returned collection is always an array.
 
+
 ## PromiseUtil.map( collection\<T>, callback, options ) : Promise\<collection\<T>>
 
 Works similar to `PromiseUtil.each()` but promises a copy of provided collection with results returned from callback invoked on every item in original array.
@@ -105,6 +106,7 @@ Works similar to `PromiseUtil.each()` but promises a copy of provided collection
 This method is a counterpart to `Array.map()` with support for promises.
 
 The option `{ asArray: false }` may be provided to get a `Map` on providing a `Map` and an object when providing an object. Otherwise the returned collection is always an array.
+
 
 ## PromiseUtil.multiMap( collection\<T>, callback, options ) : Promise\<collection\<T>>
 
@@ -114,17 +116,20 @@ Works similar to `PromiseUtil.map()` but invokes callback on all provided array 
 
 The option `{ asArray: false }` may be provided to get a `Map` on providing a `Map` and an object when providing an object. Otherwise the returned collection is always an array.
 
+
 ## PromiseUtil.find( collection\<T>, callback ) : Promise\<T|undefined>
 
 Works similar to `PromiseUtil.each()` but promises first item of collection provided callback function has returned truthy value for. If callback did not return truthy result on any item the returned promise is resolved with `null`.
 
 This method is a counterpart to `Array.find()` with support for promises.
 
+
 ## PromiseUtil.indexOf( collection\<T>, callback ) : Promise\<int>
 
 Works similar to `PromiseUtil.each()` but promises index of first item of array provided callback function has returned truthy value for. If callback did not return truthy result on any item the returned promise is resolved with `-1`.
 
 This method is a counterpart to `Array.indexOf()` with support for promises.
+
 
 ## PromiseUtil.delay( int, T ) : Promise\<T>
 
@@ -133,6 +138,7 @@ This method is a promisified version of `setTimeout()` resolving returned promis
     PromiseUtil.delay( 5000, "Hello World!" ).then( msg => console.log( msg ) );
 
 This example will output `Hello World!` on stdout after a rough delay of 5 seconds.
+
 
 ## PromiseUtil.process( Readable, callback ) : Promise\<object>
 
@@ -146,7 +152,7 @@ On stream emitting `error` event the promise is rejected. Same applies to callba
     const PromiseUtil = require( "promise-essentials" );
     
     function _someHandler( req, res, next ) {
-        PromiseTool.process( req, chunk => {
+        PromiseUtil.process( req, chunk => {
             this.collected = ( this.collected || [] ).concat( [ chunk ] );
         } )
             .then( ( { collected } ) => {
@@ -160,6 +166,7 @@ On stream emitting `error` event the promise is rejected. Same applies to callba
 ```
 
 As of 0.0.3 there is a default processor collecting all read objects/chunks in property `collected` as illustrated in example above so this example may be reduced to read `PromiseTool.process( req ).then( ... )`, only.
+
 
 ## PromiseUtil.promisify( fn, [ bindObject ] ) : fn:Promise
 
