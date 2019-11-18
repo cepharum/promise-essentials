@@ -63,7 +63,7 @@ Provided callback function is invoked with arguments
 
 * `item` referring to the currently processed item of collection. If original item is a promise then callback is invoked with the resolution of that promise instead of the promise itself.
 * `index` providing the numeric index of item in provided array or the name of provided object's property or provided `Map`'s element.
-* `items` referring to the provided collection as a whole.
+* `collection` referring to the provided collection as a whole.
  
 Whenever the callback is returning a promise the iteration is delayed until that promise is resolved. On rejecting that promise the iteration is failing as a whole resulting in a rejection of promise returned by each.
 
