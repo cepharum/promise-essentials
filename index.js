@@ -88,7 +88,7 @@ class PromiseUtil {
 						} )
 						.catch( reject );
 				} else {
-					resolve( stopOnReturn ? false : collection );
+					resolve( stopOnReturn == null ? collection : false );
 				}
 			}
 		} );
@@ -115,8 +115,7 @@ class PromiseUtil {
 	 * @returns {Promise<boolean>} promises true if every item of collection was satisfying callback, false otherwise
 	 */
 	static every( items, fn ) {
-		return this.each( items, fn, { stopOnReturn: true } )
-			.then( result => !result );
+		return this.each( items, fn, { stopOnReturn: false } ).then( result => !result );
 	}
 
 	/**
