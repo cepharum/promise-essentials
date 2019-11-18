@@ -5,7 +5,7 @@ const Stream = require( "stream" );
 const { describe, beforeEach, it } = require( "mocha" );
 const Should = require( "should" );
 
-const PromiseTool = require( ".." );
+const PromiseUtil = require( ".." );
 
 // ----------------------------------------------------------------------------
 
@@ -35,9 +35,9 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed iteration over array using each()", function() {
-		let output = [];
+		const output = [];
 
-		return PromiseTool
+		return PromiseUtil
 			.each( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -64,9 +64,9 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed iteration over object using each()", function() {
-		let output = [];
+		const output = [];
 
-		return PromiseTool
+		return PromiseUtil
 			.each( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -94,9 +94,9 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed iteration over Map using each()", function() {
-		let output = [];
+		const output = [];
 
-		return PromiseTool
+		return PromiseUtil
 			.each( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -120,7 +120,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed filtering of array using filter()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.filter( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -150,7 +150,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed filtering of object using filter()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.filter( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -176,7 +176,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed filtering of Map using filter()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.filter( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -202,7 +202,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of array using map()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.map( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -229,7 +229,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of object using map()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.map( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -254,7 +254,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of Map using map()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.map( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -275,7 +275,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of array using multiMap()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.multiMap( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -302,7 +302,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of object using multiMap()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.multiMap( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -327,7 +327,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed mapping of Map using multiMap()", function() {
-		return PromiseTool
+		return PromiseUtil
 			.multiMap( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -351,8 +351,8 @@ describe( "Tools.Promise", function() {
 		let rank = 1;
 
 		return Promise.all( [
-			PromiseTool.map( sortedList, fastMapper ).then( () => rank++ ),
-			PromiseTool.multiMap( sortedList, slowMapper ).then( () => rank++ )
+			PromiseUtil.map( sortedList, fastMapper ).then( () => rank++ ),
+			PromiseUtil.multiMap( sortedList, slowMapper ).then( () => rank++ )
 		] )
 			.then( function( [ mapped, multiMapped ] ) {
 				Should( mapped ).be.exactly( 2 );
@@ -382,8 +382,8 @@ describe( "Tools.Promise", function() {
 		let rank = 1;
 
 		return Promise.all( [
-			PromiseTool.map( object, fastMapper ).then( () => rank++ ),
-			PromiseTool.multiMap( object, slowMapper ).then( () => rank++ )
+			PromiseUtil.map( object, fastMapper ).then( () => rank++ ),
+			PromiseUtil.multiMap( object, slowMapper ).then( () => rank++ )
 		] )
 			.then( ( [ mapped, multiMapped ] ) => {
 				Should( mapped ).be.exactly( 2 );
@@ -413,8 +413,8 @@ describe( "Tools.Promise", function() {
 		let rank = 1;
 
 		return Promise.all( [
-			PromiseTool.map( map, fastMapper ).then( () => rank++ ),
-			PromiseTool.multiMap( map, slowMapper ).then( () => rank++ )
+			PromiseUtil.map( map, fastMapper ).then( () => rank++ ),
+			PromiseUtil.multiMap( map, slowMapper ).then( () => rank++ )
 		] )
 			.then( ( [ mapped, multiMapped ] ) => {
 				Should( mapped ).be.exactly( 2 );
@@ -443,7 +443,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search for value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -468,7 +468,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed search for value in object", function() {
-		return PromiseTool
+		return PromiseUtil
 			.find( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -491,7 +491,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search for value in Map", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -517,7 +517,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search in reverse order for value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -542,7 +542,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed search in reverse order for value in object", function() {
-		return PromiseTool
+		return PromiseUtil
 			.find( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -565,7 +565,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search in reverse order for value in Map", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -588,10 +588,10 @@ describe( "Tools.Promise", function() {
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search for value in array", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search for value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -610,15 +610,15 @@ describe( "Tools.Promise", function() {
 			} )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 21 );
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search for value in object", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search for value in object", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -636,15 +636,15 @@ describe( "Tools.Promise", function() {
 			} )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 3 );
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search for value in Map", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search for value in Map", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -662,15 +662,15 @@ describe( "Tools.Promise", function() {
 			} )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 3 );
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search in reverse order for value in array", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search in reverse order for value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -689,15 +689,15 @@ describe( "Tools.Promise", function() {
 			}, true )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 21 );
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search in reverse order for value in object", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search in reverse order for value in object", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -715,15 +715,15 @@ describe( "Tools.Promise", function() {
 			}, true )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 3 );
 			} );
 	} );
 
-	it( "provides null on failed sequential, probably delayed search in reverse order for value in Map", function() {
+	it( "provides `undefined` on failed sequential, probably delayed search in reverse order for value in Map", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.find( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -741,7 +741,7 @@ describe( "Tools.Promise", function() {
 			}, true )
 			.then( result => {
 				// find() is providing found value
-				Should( result ).be.null();
+				Should( result ).be.undefined();
 				Should( sum ).be.equal( 3 );
 			} );
 	} );
@@ -749,7 +749,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search for index of a value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -774,7 +774,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed search for name of an object's property", function() {
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -797,7 +797,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search for key of a Map's element", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -823,7 +823,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search in reverse order for index of a value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -848,7 +848,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "supports sequential, probably delayed search in reverse order for name of an object's property", function() {
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -871,7 +871,7 @@ describe( "Tools.Promise", function() {
 	it( "supports sequential, probably delayed search in reverse order for key of a Map's element", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -897,7 +897,7 @@ describe( "Tools.Promise", function() {
 	it( "provides -1 on failed sequential, probably delayed search for index of a value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( sortedList, ( value, index, items ) => {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -924,7 +924,7 @@ describe( "Tools.Promise", function() {
 	it( "provides undefined on failed sequential, probably delayed search for name of an object's property", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -950,7 +950,7 @@ describe( "Tools.Promise", function() {
 	it( "provides undefined on failed sequential, probably delayed search for key of a Map's element", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -976,7 +976,7 @@ describe( "Tools.Promise", function() {
 	it( "provides -1 on failed sequential, probably delayed search in reverse order for index of a value in array", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( sortedList, function( value, index, items ) {
 				Should( index ).be.within( 0, 6 );
 				items.should.be.Array();
@@ -1003,7 +1003,7 @@ describe( "Tools.Promise", function() {
 	it( "provides undefined on failed sequential, probably delayed search in reverse order for name of an object's property", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( object, ( value, index, items ) => {
 				index.should.be.String().and.match( /^key[1-3]$/ );
 				items.should.be.Object().which.has.size( 3 );
@@ -1029,7 +1029,7 @@ describe( "Tools.Promise", function() {
 	it( "provides undefined on failed sequential, probably delayed search in reverse order for key of a Map's element", function() {
 		let sum = 0;
 
-		return PromiseTool
+		return PromiseUtil
 			.indexOf( map, ( value, index, items ) => {
 				index.should.be.String().and.match( /^(first|second|third)$/ );
 				items.should.be.instanceOf( Map ).and.have.size( 3 );
@@ -1053,11 +1053,11 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "creates promise to conveniently delay processing", function() {
-		let start = Date.now();
+		const start = Date.now();
 
-		return PromiseTool.delay( 100 )
+		return PromiseUtil.delay( 100 )
 			.then( function() {
-				let stop = Date.now();
+				const stop = Date.now();
 
 				// find() is providing found value
 				Should( stop - start ).be.approximately( 100, 30 );
@@ -1065,7 +1065,7 @@ describe( "Tools.Promise", function() {
 	} );
 
 	it( "resolves on processing no items read from empty stream", function() {
-		return PromiseTool.process( _getStreamFromArray(), () => {
+		return PromiseUtil.process( _getStreamFromArray(), () => {
 			throw new Error( "process() invoked callback on empty string" );
 		} );
 	} );
@@ -1073,7 +1073,7 @@ describe( "Tools.Promise", function() {
 	it( "resolves on processing item read from single-item object stream", function() {
 		const stream = _getStreamFromArray( { items: [{ foo: 1 }] } );
 
-		return PromiseTool.process( stream, ( item, index, streamRef ) => {
+		return PromiseUtil.process( stream, ( item, index, streamRef ) => {
 			item.should.be.Object()
 				.and.have.size( 1 )
 				.and.have.property( "foo" )
@@ -1089,7 +1089,7 @@ describe( "Tools.Promise", function() {
 
 		const stream = _getStreamFromArray( { items: [ 1, 2, 6, 8, 5 ] } );
 
-		return PromiseTool.process( stream, function( digit, index ) {
+		return PromiseUtil.process( stream, function( digit, index ) {
 			return new Promise( resolve => {
 				setTimeout( () => {
 					this.number = ( this.number || 0 ) + ( digit * factor );
@@ -1118,7 +1118,7 @@ describe( "Tools.Promise", function() {
 			]
 		} );
 
-		return PromiseTool.process( stream, function( chunk, index ) {
+		return PromiseUtil.process( stream, function( chunk, index ) {
 			return new Promise( resolve => {
 				setTimeout( () => {
 					this.chunks = ( this.chunks || [] ).concat( [chunk] );
@@ -1150,7 +1150,7 @@ describe( "Tools.Promise", function() {
 			]
 		} );
 
-		return PromiseTool.process( stream )
+		return PromiseUtil.process( stream )
 			.then( result => {
 				result.should.be.Object()
 					.and.have.size( 1 )
@@ -1177,7 +1177,7 @@ describe( "Tools.Promise", function() {
 
 		let processed = null;
 
-		return PromiseTool.process( stream, function( chunk, index ) {
+		return PromiseUtil.process( stream, function( chunk, index ) {
 			return new Promise( resolve => {
 				setTimeout( () => {
 					this.chunks = processed = ( this.chunks || [] ).concat( [chunk] );
@@ -1201,7 +1201,7 @@ describe( "Tools.Promise", function() {
 
 		stat.should.be.Function();
 
-		const promisifiedStat = PromiseTool.promisify( stat );
+		const promisifiedStat = PromiseUtil.promisify( stat );
 
 		promisifiedStat.should.be.Function();
 
@@ -1213,7 +1213,7 @@ describe( "Tools.Promise", function() {
 	it( "returns rejected promise on calling promisified function of NodeJS library expected to fail", function() {
 		const { stat } = require( "fs" );
 
-		const promisifiedStat = PromiseTool.promisify( stat );
+		const promisifiedStat = PromiseUtil.promisify( stat );
 
 		const promise = promisifiedStat( require( "path" ).join( __dirname, "lots.of.nonsense.name.garbage" ) );
 
@@ -1232,8 +1232,8 @@ describe( "Tools.Promise", function() {
 
 		const context = { theValue: "found" };
 
-		const promisifiedUnboundFunction = PromiseTool.promisify( theFunction );
-		const promisifiedBoundFunction = PromiseTool.promisify( theFunction, context );
+		const promisifiedUnboundFunction = PromiseUtil.promisify( theFunction );
+		const promisifiedBoundFunction = PromiseUtil.promisify( theFunction, context );
 
 		const unboundPromise = promisifiedUnboundFunction();
 		const boundPromise = promisifiedBoundFunction();
