@@ -1,0 +1,9 @@
+{
+	"env": {
+		"mocha": false
+	},
+	"rules": {
+		"require-jsdoc": "off",
+		"valid-jsdoc": "off"
+	}
+}
