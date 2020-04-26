@@ -907,7 +907,7 @@ describe( "PromiseUtil", function() {
 					// return after some delay
 					return new Promise( resolve => setTimeout( resolve, 20 ) )
 						.then( () => value === "%" );
-				}, true )
+				}, { getLast: true } )
 				.then( result => {
 					// find() is providing found value
 					result.should.be.String().and.be.equal( "%" );
@@ -954,7 +954,7 @@ describe( "PromiseUtil", function() {
 					// return after some delay
 					return new Promise( resolve => setTimeout( resolve, 20 ) )
 						.then( () => value === "one" );
-				}, true )
+				}, { getLast: true } )
 				.then( result => {
 					// find() is providing found value
 					result.should.be.String().and.be.equal( "one" );
@@ -1215,7 +1215,7 @@ describe( "PromiseUtil", function() {
 					// return after some delay
 					return new Promise( resolve => setTimeout( resolve, 20 ) )
 						.then( () => value === "%" );
-				}, true )
+				}, { getLast: true } )
 				.then( result => {
 					// find() is providing found value
 					result.should.be.Number().and.be.equal( 5 );
@@ -1237,7 +1237,7 @@ describe( "PromiseUtil", function() {
 					// return after some delay
 					return new Promise( resolve => setTimeout( resolve, 20 ) )
 						.then( () => value === "one" );
-				}, true )
+				}, { getLast: true } )
 				.then( result => {
 					// find() is providing found value
 					result.should.equal( "key1" );
@@ -1262,7 +1262,7 @@ describe( "PromiseUtil", function() {
 					// return after some delay
 					return new Promise( resolve => setTimeout( resolve, 20 ) )
 						.then( () => value === "one" );
-				}, true )
+				}, { getLast: true } )
 				.then( result => {
 					// find() is providing found value
 					result.should.equal( "first" );
