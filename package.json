@@ -30,5 +30,8 @@
     "eslint-plugin-standard": "^4.0.1",
     "mocha": "^6.2.2",
     "should": "^13.2.3"
+  },
+  "dependencies": {
+    "@types/node": "^13.13.2"
   }
 }
