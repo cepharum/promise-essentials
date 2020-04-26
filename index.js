@@ -309,7 +309,7 @@ class PromiseUtil {
 	 * @returns {Promise<*>} promises first element callback returned truthy on or
 	 *          undefined if no item satisfies this
 	 */
-	static find( items, fn, getLast = false ) {
+	static find( items, fn, { getLast = false } = {} ) {
 		return this.indexOf( items, fn, getLast )
 			.then( index => {
 				if ( Array.isArray( items ) ) {
@@ -336,7 +336,7 @@ class PromiseUtil {
 	 * @returns {Promise<number>} promises index of first element callback returned
 	 *          truthy on or -1 if no item satisfies this
 	 */
-	static indexOf( items, fn, getLast = false ) {
+	static indexOf( items, fn, { getLast = false } = {} ) {
 		const { indexes, length, useGet } = prepareIteration( items );
 
 		return new Promise( function( resolve, reject ) {
