@@ -310,7 +310,7 @@ class PromiseUtil {
 	 *          undefined if no item satisfies this
 	 */
 	static find( items, fn, { getLast = false } = {} ) {
-		return this.indexOf( items, fn, getLast )
+		return this.indexOf( items, fn, { getLast } )
 			.then( index => {
 				if ( Array.isArray( items ) ) {
 					return index > -1 ? items[index] : undefined;
