@@ -29,7 +29,7 @@ declare module "promise-essentials" {
      * @param options behaviour customizations
      * @returns promises provided iterable or boolean information on whether iteration has been stopped prematurely or not
      */
-    function each( iterable: Iterable, callback: IterationHandler, options: EachOptions ): Promise<Iterable | boolean>;
+    function each( iterable: Iterable, callback: IterationHandler, options?: EachOptions ): Promise<Iterable | boolean>;
 
     /**
      * Tests if at least one item exists in provided iterable matching criteria
