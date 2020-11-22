@@ -54,7 +54,7 @@ class PromiseUtil {
 	static each( items, fn, { stopOnReturn = null } = {} ) {
 		const { indexes, length, useGet } = prepareIteration( items );
 
-		return new Promise( function( resolve, reject ) {
+		return new Promise( ( resolve, reject ) => {
 			step( items, indexes, 0, length );
 
 			/**
@@ -133,7 +133,7 @@ class PromiseUtil {
 	static filter( items, fn, { asArray = true } = {} ) {
 		const { indexes, length, useGet, collector } = prepareIteration( items, { createCollector: true, asArray } );
 
-		return new Promise( function( resolve, reject ) {
+		return new Promise( ( resolve, reject ) => {
 			step( items, indexes, 0, length, collector, 0 );
 
 			/**
@@ -201,7 +201,7 @@ class PromiseUtil {
 	static map( items, fn, { asArray = true } = {} ) {
 		const { indexes, length, useGet, collector } = prepareIteration( items, { createCollector: true, asArray } );
 
-		return new Promise( function( resolve, reject ) {
+		return new Promise( ( resolve, reject ) => {
 			step( items, indexes, 0, length, collector );
 
 			/**
@@ -339,7 +339,7 @@ class PromiseUtil {
 	static indexOf( items, fn, { getLast = false } = {} ) {
 		const { indexes, length, useGet } = prepareIteration( items );
 
-		return new Promise( function( resolve, reject ) {
+		return new Promise( ( resolve, reject ) => {
 			step( items, indexes, getLast ? length - 1 : 0, getLast ? -1 : length, getLast ? -1 : +1 );
 
 			/**
